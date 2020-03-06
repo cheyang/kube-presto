@@ -1,0 +1,123 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: presto
+  namespace: warehouse
+spec:
+  ports:
+  - port: 8080
+  selector:
+    app: presto-coordinator
+
+
+---
+
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: presto-coordinator
+  namespace: warehouse
+spec:
+  selector:
+    matchLabels:
+      app: presto-coordinator
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: presto-coordinator
+    spec:
+      containers:
+      - name: presto-coordinator
+        image: uprush/prestosql-server:330
+        ports:
+        - containerPort: 8080
+        env:
+        - name: AWS_ACCESS_KEY_ID
+          valueFrom:
+            secretKeyRef:
+              name: metastore-s3-keys
+              key: access-key
+        - name: AWS_SECRET_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: metastore-s3-keys
+              key: secret-key
+        volumeMounts:
+        - name: presto-etc-vol
+          mountPath: /opt/presto-server/etc/config.properties
+          subPath: config.properties.coordinator
+        - name: presto-etc-vol
+          mountPath: /opt/presto-server/etc/jvm.config
+          subPath: jvm.config.coordinator
+        - name: presto-catalog-vol
+          mountPath: /opt/presto-server/etc/catalog
+        resources:
+          requests:
+            memory: "32G"
+            cpu: 8
+        imagePullPolicy: Always
+      volumes:
+        - name: presto-etc-vol
+          configMap:
+            name: presto-etc
+      volumes:
+        - name: presto-catalog-vol
+          configMap:
+            name: presto-catalog
+
+
+---
+
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: presto-worker
+spec:
+  replicas: 5
+  selector:
+    matchLabels:
+      app: presto-worker
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: presto-worker
+    spec:
+      containers:
+      - name: presto-worker
+        image: uprush/prestosql-server:330
+        env:
+        - name: AWS_ACCESS_KEY_ID
+          valueFrom:
+            secretKeyRef:
+              name: metastore-s3-keys
+              key: access-key
+        - name: AWS_SECRET_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: metastore-s3-keys
+              key: secret-key
+        volumeMounts:
+        - name: presto-etc-vol
+          mountPath: /opt/presto-server/etc/config.properties
+          subPath: config.properties.worker
+        - name: presto-etc-vol
+          mountPath: /opt/presto-server/etc/jvm.config
+          subPath: jvm.config.worker
+        - name: presto-catalog-vol
+          mountPath: /opt/presto-server/etc/catalog
+        resources:
+          requests:
+            memory: "32G"
+            cpu: 8
+        imagePullPolicy: Always
+      volumes:
+        - name: presto-catalog-vol
+          configMap:
+            name: presto-catalog
