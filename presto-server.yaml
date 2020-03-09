@@ -54,7 +54,8 @@ spec:
           mountPath: /opt/presto-server/etc/jvm.config
           subPath: jvm.config.coordinator
         - name: presto-catalog-vol
-          mountPath: /opt/presto-server/etc/catalog
+          subPath: tpcds.properties
+          mountPath: /opt/presto-server/etc/catalog/tpcds.properties
         resources:
           requests:
             memory: "32G"
@@ -76,8 +77,9 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: presto-worker
+  namespace: warehouse
 spec:
-  replicas: 5
+  replicas: 3
   selector:
     matchLabels:
       app: presto-worker
@@ -110,7 +112,8 @@ spec:
           mountPath: /opt/presto-server/etc/jvm.config
           subPath: jvm.config.worker
         - name: presto-catalog-vol
-          mountPath: /opt/presto-server/etc/catalog
+          subPath: tpcds.properties
+          mountPath: /opt/presto-server/etc/catalog/tpcds.properties
         resources:
           requests:
             memory: "32G"
