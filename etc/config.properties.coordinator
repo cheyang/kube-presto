@@ -3,6 +3,6 @@ node-scheduler.include-coordinator=true
 http-server.http.port=8080
 query.max-memory=1TB
 query.max-memory-per-node=16GB
-query.max-total-memory-per-node=20GB
+query.max-total-memory-per-node=18GB
 discovery-server.enabled=true
 discovery.uri=http://presto:8080
