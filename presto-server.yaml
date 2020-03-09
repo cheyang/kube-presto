@@ -64,7 +64,6 @@ spec:
         - name: presto-etc-vol
           configMap:
             name: presto-etc
-      volumes:
         - name: presto-catalog-vol
           configMap:
             name: presto-catalog
@@ -118,6 +117,9 @@ spec:
             cpu: 8
         imagePullPolicy: Always
       volumes:
+        - name: presto-etc-vol
+          configMap:
+            name: presto-etc
         - name: presto-catalog-vol
           configMap:
             name: presto-catalog
