@@ -16,10 +16,10 @@
         <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
         <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController" testname="Loop Controller" enabled="true">
           <boolProp name="LoopController.continue_forever">false</boolProp>
-          <stringProp name="LoopController.loops">1</stringProp>
+          <stringProp name="LoopController.loops">3</stringProp>
         </elementProp>
         <stringProp name="ThreadGroup.num_threads">1</stringProp>
-        <stringProp name="ThreadGroup.ramp_time">1</stringProp>
+        <stringProp name="ThreadGroup.ramp_time">4</stringProp>
         <boolProp name="ThreadGroup.scheduler">false</boolProp>
         <stringProp name="ThreadGroup.duration"></stringProp>
         <stringProp name="ThreadGroup.delay"></stringProp>
@@ -167,6 +167,163 @@ LIMIT 100
           <stringProp name="resultSetHandler">Store as String</stringProp>
         </JDBCSampler>
         <hashTree/>
+        <JDBCSampler guiclass="TestBeanGUI" testclass="JDBCSampler" testname="q05" enabled="true">
+          <stringProp name="dataSource">conn5</stringProp>
+          <stringProp name="queryType">Select Statement</stringProp>
+          <stringProp name="query">WITH
+  ssr AS (
+   SELECT
+     &quot;s_store_id&quot;
+   , &quot;sum&quot;(&quot;sales_price&quot;) &quot;sales&quot;
+   , &quot;sum&quot;(&quot;profit&quot;) &quot;profit&quot;
+   , &quot;sum&quot;(&quot;return_amt&quot;) &quot;returns&quot;
+   , &quot;sum&quot;(&quot;net_loss&quot;) &quot;profit_loss&quot;
+   FROM
+     (
+      SELECT
+        &quot;ss_store_sk&quot; &quot;store_sk&quot;
+      , &quot;ss_sold_date_sk&quot; &quot;date_sk&quot;
+      , &quot;ss_ext_sales_price&quot; &quot;sales_price&quot;
+      , &quot;ss_net_profit&quot; &quot;profit&quot;
+      , CAST(0 AS DECIMAL(7,2)) &quot;return_amt&quot;
+      , CAST(0 AS DECIMAL(7,2)) &quot;net_loss&quot;
+      FROM
+        hive.tpcds_sf1000_orc.store_sales
+UNION ALL       SELECT
+        &quot;sr_store_sk&quot; &quot;store_sk&quot;
+      , &quot;sr_returned_date_sk&quot; &quot;date_sk&quot;
+      , CAST(0 AS DECIMAL(7,2)) &quot;sales_price&quot;
+      , CAST(0 AS DECIMAL(7,2)) &quot;profit&quot;
+      , &quot;sr_return_amt&quot; &quot;return_amt&quot;
+      , &quot;sr_net_loss&quot; &quot;net_loss&quot;
+      FROM
+        hive.tpcds_sf1000_orc.store_returns
+   )  salesreturns
+   , hive.tpcds_sf1000_orc.date_dim
+   , hive.tpcds_sf1000_orc.store
+   WHERE (&quot;date_sk&quot; = &quot;d_date_sk&quot;)
+      AND (&quot;d_date&quot; BETWEEN CAST(&apos;2000-08-23&apos; AS DATE) AND (CAST(&apos;2000-08-23&apos; AS DATE) + INTERVAL  &apos;14&apos; DAY))
+      AND (&quot;store_sk&quot; = &quot;s_store_sk&quot;)
+   GROUP BY &quot;s_store_id&quot;
+) 
+, csr AS (
+   SELECT
+     &quot;cp_catalog_page_id&quot;
+   , &quot;sum&quot;(&quot;sales_price&quot;) &quot;sales&quot;
+   , &quot;sum&quot;(&quot;profit&quot;) &quot;profit&quot;
+   , &quot;sum&quot;(&quot;return_amt&quot;) &quot;returns&quot;
+   , &quot;sum&quot;(&quot;net_loss&quot;) &quot;profit_loss&quot;
+   FROM
+     (
+      SELECT
+        &quot;cs_catalog_page_sk&quot; &quot;page_sk&quot;
+      , &quot;cs_sold_date_sk&quot; &quot;date_sk&quot;
+      , &quot;cs_ext_sales_price&quot; &quot;sales_price&quot;
+      , &quot;cs_net_profit&quot; &quot;profit&quot;
+      , CAST(0 AS DECIMAL(7,2)) &quot;return_amt&quot;
+      , CAST(0 AS DECIMAL(7,2)) &quot;net_loss&quot;
+      FROM
+        hive.tpcds_sf1000_orc.catalog_sales
+UNION ALL       SELECT
+        &quot;cr_catalog_page_sk&quot; &quot;page_sk&quot;
+      , &quot;cr_returned_date_sk&quot; &quot;date_sk&quot;
+      , CAST(0 AS DECIMAL(7,2)) &quot;sales_price&quot;
+      , CAST(0 AS DECIMAL(7,2)) &quot;profit&quot;
+      , &quot;cr_return_amount&quot; &quot;return_amt&quot;
+      , &quot;cr_net_loss&quot; &quot;net_loss&quot;
+      FROM
+        hive.tpcds_sf1000_orc.catalog_returns
+   )  salesreturns
+   , hive.tpcds_sf1000_orc.date_dim
+   , hive.tpcds_sf1000_orc.catalog_page
+   WHERE (&quot;date_sk&quot; = &quot;d_date_sk&quot;)
+      AND (&quot;d_date&quot; BETWEEN CAST(&apos;2000-08-23&apos; AS DATE) AND (CAST(&apos;2000-08-23&apos; AS DATE) + INTERVAL  &apos;14&apos; DAY))
+      AND (&quot;page_sk&quot; = &quot;cp_catalog_page_sk&quot;)
+   GROUP BY &quot;cp_catalog_page_id&quot;
+) 
+, wsr AS (
+   SELECT
+     &quot;web_site_id&quot;
+   , &quot;sum&quot;(&quot;sales_price&quot;) &quot;sales&quot;
+   , &quot;sum&quot;(&quot;profit&quot;) &quot;profit&quot;
+   , &quot;sum&quot;(&quot;return_amt&quot;) &quot;returns&quot;
+   , &quot;sum&quot;(&quot;net_loss&quot;) &quot;profit_loss&quot;
+   FROM
+     (
+      SELECT
+        &quot;ws_web_site_sk&quot; &quot;wsr_web_site_sk&quot;
+      , &quot;ws_sold_date_sk&quot; &quot;date_sk&quot;
+      , &quot;ws_ext_sales_price&quot; &quot;sales_price&quot;
+      , &quot;ws_net_profit&quot; &quot;profit&quot;
+      , CAST(0 AS DECIMAL(7,2)) &quot;return_amt&quot;
+      , CAST(0 AS DECIMAL(7,2)) &quot;net_loss&quot;
+      FROM
+        hive.tpcds_sf1000_orc.web_sales
+UNION ALL       SELECT
+        &quot;ws_web_site_sk&quot; &quot;wsr_web_site_sk&quot;
+      , &quot;wr_returned_date_sk&quot; &quot;date_sk&quot;
+      , CAST(0 AS DECIMAL(7,2)) &quot;sales_price&quot;
+      , CAST(0 AS DECIMAL(7,2)) &quot;profit&quot;
+      , &quot;wr_return_amt&quot; &quot;return_amt&quot;
+      , &quot;wr_net_loss&quot; &quot;net_loss&quot;
+      FROM
+        (hive.tpcds_sf1000_orc.web_returns
+      LEFT JOIN hive.tpcds_sf1000_orc.web_sales ON (&quot;wr_item_sk&quot; = &quot;ws_item_sk&quot;)
+         AND (&quot;wr_order_number&quot; = &quot;ws_order_number&quot;))
+   )  salesreturns
+   , hive.tpcds_sf1000_orc.date_dim
+   , hive.tpcds_sf1000_orc.web_site
+   WHERE (&quot;date_sk&quot; = &quot;d_date_sk&quot;)
+      AND (&quot;d_date&quot; BETWEEN CAST(&apos;2000-08-23&apos; AS DATE) AND (CAST(&apos;2000-08-23&apos; AS DATE) + INTERVAL  &apos;14&apos; DAY))
+      AND (&quot;wsr_web_site_sk&quot; = &quot;web_site_sk&quot;)
+   GROUP BY &quot;web_site_id&quot;
+) 
+SELECT
+  &quot;channel&quot;
+, &quot;id&quot;
+, &quot;sum&quot;(&quot;sales&quot;) &quot;sales&quot;
+, &quot;sum&quot;(&quot;returns&quot;) &quot;returns&quot;
+, &quot;sum&quot;(&quot;profit&quot;) &quot;profit&quot;
+FROM
+  (
+   SELECT
+     &apos;hive.tpcds_sf1000_orc.store channel&apos; &quot;channel&quot;
+   , &quot;concat&quot;(&apos;store&apos;, &quot;s_store_id&quot;) &quot;id&quot;
+   , &quot;sales&quot;
+   , &quot;returns&quot;
+   , (&quot;profit&quot; - &quot;profit_loss&quot;) &quot;profit&quot;
+   FROM
+     ssr
+UNION ALL    SELECT
+     &apos;catalog channel&apos; &quot;channel&quot;
+   , &quot;concat&quot;(&apos;catalog_page&apos;, &quot;cp_catalog_page_id&quot;) &quot;id&quot;
+   , &quot;sales&quot;
+   , &quot;returns&quot;
+   , (&quot;profit&quot; - &quot;profit_loss&quot;) &quot;profit&quot;
+   FROM
+     csr
+UNION ALL    SELECT
+     &apos;web channel&apos; &quot;channel&quot;
+   , &quot;concat&quot;(&apos;web_site&apos;, &quot;web_site_id&quot;) &quot;id&quot;
+   , &quot;sales&quot;
+   , &quot;returns&quot;
+   , (&quot;profit&quot; - &quot;profit_loss&quot;) &quot;profit&quot;
+   FROM
+     wsr
+)  x
+GROUP BY ROLLUP (channel, id)
+ORDER BY &quot;channel&quot; ASC, &quot;id&quot; ASC
+LIMIT 100
+</stringProp>
+          <stringProp name="queryArguments"></stringProp>
+          <stringProp name="queryArgumentsTypes"></stringProp>
+          <stringProp name="variableNames"></stringProp>
+          <stringProp name="resultVariable"></stringProp>
+          <stringProp name="queryTimeout"></stringProp>
+          <stringProp name="resultSetMaxRows"></stringProp>
+          <stringProp name="resultSetHandler">Store as String</stringProp>
+        </JDBCSampler>
+        <hashTree/>
         <ResultCollector guiclass="SummaryReport" testclass="ResultCollector" testname="Summary Report" enabled="true">
           <boolProp name="ResultCollector.error_logging">false</boolProp>
           <objProp>
@@ -203,6 +360,709 @@ LIMIT 100
           </objProp>
           <stringProp name="filename"></stringProp>
         </ResultCollector>
+        <hashTree/>
+        <JDBCSampler guiclass="TestBeanGUI" testclass="JDBCSampler" testname="q06" enabled="true">
+          <stringProp name="dataSource">conn5</stringProp>
+          <stringProp name="queryType">Select Statement</stringProp>
+          <stringProp name="query">SELECT
+  &quot;a&quot;.&quot;ca_state&quot; &quot;STATE&quot;
+, &quot;count&quot;(*) &quot;cnt&quot;
+FROM
+  hive.tpcds_sf1000_orc.customer_address a
+, hive.tpcds_sf1000_orc.customer c
+, hive.tpcds_sf1000_orc.store_sales s
+, hive.tpcds_sf1000_orc.date_dim d
+, hive.tpcds_sf1000_orc.item i
+WHERE (&quot;a&quot;.&quot;ca_address_sk&quot; = &quot;c&quot;.&quot;c_current_addr_sk&quot;)
+   AND (&quot;c&quot;.&quot;c_customer_sk&quot; = &quot;s&quot;.&quot;ss_customer_sk&quot;)
+   AND (&quot;s&quot;.&quot;ss_sold_date_sk&quot; = &quot;d&quot;.&quot;d_date_sk&quot;)
+   AND (&quot;s&quot;.&quot;ss_item_sk&quot; = &quot;i&quot;.&quot;i_item_sk&quot;)
+   AND (&quot;d&quot;.&quot;d_month_seq&quot; = (
+      SELECT DISTINCT &quot;d_month_seq&quot;
+      FROM
+        hive.tpcds_sf1000_orc.date_dim
+      WHERE (&quot;d_year&quot; = 2001)
+         AND (&quot;d_moy&quot; = 1)
+   ))
+   AND (&quot;i&quot;.&quot;i_current_price&quot; &gt; (DECIMAL &apos;1.2&apos; * (
+         SELECT &quot;avg&quot;(&quot;j&quot;.&quot;i_current_price&quot;)
+         FROM
+           hive.tpcds_sf1000_orc.item j
+         WHERE (&quot;j&quot;.&quot;i_category&quot; = &quot;i&quot;.&quot;i_category&quot;)
+      )))
+GROUP BY &quot;a&quot;.&quot;ca_state&quot;
+HAVING (&quot;count&quot;(*) &gt;= 10)
+ORDER BY &quot;cnt&quot; ASC, &quot;a&quot;.&quot;ca_state&quot; ASC
+LIMIT 100</stringProp>
+          <stringProp name="queryArguments"></stringProp>
+          <stringProp name="queryArgumentsTypes"></stringProp>
+          <stringProp name="variableNames"></stringProp>
+          <stringProp name="resultVariable"></stringProp>
+          <stringProp name="queryTimeout"></stringProp>
+          <stringProp name="resultSetMaxRows"></stringProp>
+          <stringProp name="resultSetHandler">Store as String</stringProp>
+        </JDBCSampler>
+        <hashTree/>
+        <JDBCSampler guiclass="TestBeanGUI" testclass="JDBCSampler" testname="q07" enabled="true">
+          <stringProp name="dataSource">conn5</stringProp>
+          <stringProp name="queryType">Select Statement</stringProp>
+          <stringProp name="query">SELECT
+  &quot;i_item_id&quot;
+, &quot;avg&quot;(&quot;ss_quantity&quot;) &quot;agg1&quot;
+, &quot;avg&quot;(&quot;ss_list_price&quot;) &quot;agg2&quot;
+, &quot;avg&quot;(&quot;ss_coupon_amt&quot;) &quot;agg3&quot;
+, &quot;avg&quot;(&quot;ss_sales_price&quot;) &quot;agg4&quot;
+FROM
+  hive.tpcds_sf1000_orc.store_sales
+, hive.tpcds_sf1000_orc.customer_demographics
+, hive.tpcds_sf1000_orc.date_dim
+, hive.tpcds_sf1000_orc.item
+, hive.tpcds_sf1000_orc.promotion
+WHERE (&quot;ss_sold_date_sk&quot; = &quot;d_date_sk&quot;)
+   AND (&quot;ss_item_sk&quot; = &quot;i_item_sk&quot;)
+   AND (&quot;ss_cdemo_sk&quot; = &quot;cd_demo_sk&quot;)
+   AND (&quot;ss_promo_sk&quot; = &quot;p_promo_sk&quot;)
+   AND (&quot;cd_gender&quot; = &apos;M&apos;)
+   AND (&quot;cd_marital_status&quot; = &apos;S&apos;)
+   AND (&quot;cd_education_status&quot; = &apos;College&apos;)
+   AND ((&quot;p_channel_email&quot; = &apos;N&apos;)
+      OR (&quot;p_channel_event&quot; = &apos;N&apos;))
+   AND (&quot;d_year&quot; = 2000)
+GROUP BY &quot;i_item_id&quot;
+ORDER BY &quot;i_item_id&quot; ASC
+LIMIT 100</stringProp>
+          <stringProp name="queryArguments"></stringProp>
+          <stringProp name="queryArgumentsTypes"></stringProp>
+          <stringProp name="variableNames"></stringProp>
+          <stringProp name="resultVariable"></stringProp>
+          <stringProp name="queryTimeout"></stringProp>
+          <stringProp name="resultSetMaxRows"></stringProp>
+          <stringProp name="resultSetHandler">Store as String</stringProp>
+        </JDBCSampler>
+        <hashTree/>
+        <JDBCSampler guiclass="TestBeanGUI" testclass="JDBCSampler" testname="q09" enabled="true">
+          <stringProp name="dataSource">conn5</stringProp>
+          <stringProp name="queryType">Select Statement</stringProp>
+          <stringProp name="query">SELECT
+  (CASE WHEN ((
+      SELECT &quot;count&quot;(*)
+      FROM
+        hive.tpcds_sf1000_orc.store_sales
+      WHERE (&quot;ss_quantity&quot; BETWEEN 1 AND 20)
+   ) &gt; 74129) THEN (
+   SELECT &quot;avg&quot;(&quot;ss_ext_discount_amt&quot;)
+   FROM
+     hive.tpcds_sf1000_orc.store_sales
+   WHERE (&quot;ss_quantity&quot; BETWEEN 1 AND 20)
+) ELSE (
+   SELECT &quot;avg&quot;(&quot;ss_net_paid&quot;)
+   FROM
+     hive.tpcds_sf1000_orc.store_sales
+   WHERE (&quot;ss_quantity&quot; BETWEEN 1 AND 20)
+) END) &quot;bucket1&quot;
+, (CASE WHEN ((
+      SELECT &quot;count&quot;(*)
+      FROM
+        hive.tpcds_sf1000_orc.store_sales
+      WHERE (&quot;ss_quantity&quot; BETWEEN 21 AND 40)
+   ) &gt; 122840) THEN (
+   SELECT &quot;avg&quot;(&quot;ss_ext_discount_amt&quot;)
+   FROM
+     hive.tpcds_sf1000_orc.store_sales
+   WHERE (&quot;ss_quantity&quot; BETWEEN 21 AND 40)
+) ELSE (
+   SELECT &quot;avg&quot;(&quot;ss_net_paid&quot;)
+   FROM
+     hive.tpcds_sf1000_orc.store_sales
+   WHERE (&quot;ss_quantity&quot; BETWEEN 21 AND 40)
+) END) &quot;bucket2&quot;
+, (CASE WHEN ((
+      SELECT &quot;count&quot;(*)
+      FROM
+        hive.tpcds_sf1000_orc.store_sales
+      WHERE (&quot;ss_quantity&quot; BETWEEN 41 AND 60)
+   ) &gt; 56580) THEN (
+   SELECT &quot;avg&quot;(&quot;ss_ext_discount_amt&quot;)
+   FROM
+     hive.tpcds_sf1000_orc.store_sales
+   WHERE (&quot;ss_quantity&quot; BETWEEN 41 AND 60)
+) ELSE (
+   SELECT &quot;avg&quot;(&quot;ss_net_paid&quot;)
+   FROM
+     hive.tpcds_sf1000_orc.store_sales
+   WHERE (&quot;ss_quantity&quot; BETWEEN 41 AND 60)
+) END) &quot;bucket3&quot;
+, (CASE WHEN ((
+      SELECT &quot;count&quot;(*)
+      FROM
+        hive.tpcds_sf1000_orc.store_sales
+      WHERE (&quot;ss_quantity&quot; BETWEEN 61 AND 80)
+   ) &gt; 10097) THEN (
+   SELECT &quot;avg&quot;(&quot;ss_ext_discount_amt&quot;)
+   FROM
+     hive.tpcds_sf1000_orc.store_sales
+   WHERE (&quot;ss_quantity&quot; BETWEEN 61 AND 80)
+) ELSE (
+   SELECT &quot;avg&quot;(&quot;ss_net_paid&quot;)
+   FROM
+     hive.tpcds_sf1000_orc.store_sales
+   WHERE (&quot;ss_quantity&quot; BETWEEN 61 AND 80)
+) END) &quot;bucket4&quot;
+, (CASE WHEN ((
+      SELECT &quot;count&quot;(*)
+      FROM
+        hive.tpcds_sf1000_orc.store_sales
+      WHERE (&quot;ss_quantity&quot; BETWEEN 81 AND 100)
+   ) &gt; 165306) THEN (
+   SELECT &quot;avg&quot;(&quot;ss_ext_discount_amt&quot;)
+   FROM
+     hive.tpcds_sf1000_orc.store_sales
+   WHERE (&quot;ss_quantity&quot; BETWEEN 81 AND 100)
+) ELSE (
+   SELECT &quot;avg&quot;(&quot;ss_net_paid&quot;)
+   FROM
+     hive.tpcds_sf1000_orc.store_sales
+   WHERE (&quot;ss_quantity&quot; BETWEEN 81 AND 100)
+) END) &quot;bucket5&quot;
+FROM
+  hive.tpcds_sf1000_orc.reason
+WHERE (&quot;r_reason_sk&quot; = 1)</stringProp>
+          <stringProp name="queryArguments"></stringProp>
+          <stringProp name="queryArgumentsTypes"></stringProp>
+          <stringProp name="variableNames"></stringProp>
+          <stringProp name="resultVariable"></stringProp>
+          <stringProp name="queryTimeout"></stringProp>
+          <stringProp name="resultSetMaxRows"></stringProp>
+          <stringProp name="resultSetHandler">Store as String</stringProp>
+        </JDBCSampler>
+        <hashTree/>
+        <JDBCSampler guiclass="TestBeanGUI" testclass="JDBCSampler" testname="q16" enabled="true">
+          <stringProp name="dataSource">conn5</stringProp>
+          <stringProp name="queryType">Select Statement</stringProp>
+          <stringProp name="query">SELECT
+  &quot;count&quot;(DISTINCT &quot;cs_order_number&quot;) &quot;order count&quot;
+, &quot;sum&quot;(&quot;cs_ext_ship_cost&quot;) &quot;total shipping cost&quot;
+, &quot;sum&quot;(&quot;cs_net_profit&quot;) &quot;total net profit&quot;
+FROM
+  hive.tpcds_sf1000_orc.catalog_sales cs1
+, hive.tpcds_sf1000_orc.date_dim
+, hive.tpcds_sf1000_orc.customer_address
+, hive.tpcds_sf1000_orc.call_center
+WHERE (&quot;d_date&quot; BETWEEN CAST(&apos;2002-2-01&apos; AS DATE) AND (CAST(&apos;2002-2-01&apos; AS DATE) + INTERVAL  &apos;60&apos; DAY))
+   AND (&quot;cs1&quot;.&quot;cs_ship_date_sk&quot; = &quot;d_date_sk&quot;)
+   AND (&quot;cs1&quot;.&quot;cs_ship_addr_sk&quot; = &quot;ca_address_sk&quot;)
+   AND (&quot;ca_state&quot; = &apos;GA&apos;)
+   AND (&quot;cs1&quot;.&quot;cs_call_center_sk&quot; = &quot;cc_call_center_sk&quot;)
+   AND (&quot;cc_county&quot; IN (&apos;Williamson County&apos;, &apos;Williamson County&apos;, &apos;Williamson County&apos;, &apos;Williamson County&apos;, &apos;Williamson County&apos;))
+   AND (EXISTS (
+   SELECT *
+   FROM
+     hive.tpcds_sf1000_orc.catalog_sales cs2
+   WHERE (&quot;cs1&quot;.&quot;cs_order_number&quot; = &quot;cs2&quot;.&quot;cs_order_number&quot;)
+      AND (&quot;cs1&quot;.&quot;cs_warehouse_sk&quot; &lt;&gt; &quot;cs2&quot;.&quot;cs_warehouse_sk&quot;)
+))
+   AND (NOT (EXISTS (
+   SELECT *
+   FROM
+     hive.tpcds_sf1000_orc.catalog_returns cr1
+   WHERE (&quot;cs1&quot;.&quot;cs_order_number&quot; = &quot;cr1&quot;.&quot;cr_order_number&quot;)
+)))
+ORDER BY &quot;count&quot;(DISTINCT &quot;cs_order_number&quot;) ASC
+LIMIT 100
+</stringProp>
+          <stringProp name="queryArguments"></stringProp>
+          <stringProp name="queryArgumentsTypes"></stringProp>
+          <stringProp name="variableNames"></stringProp>
+          <stringProp name="resultVariable"></stringProp>
+          <stringProp name="queryTimeout"></stringProp>
+          <stringProp name="resultSetMaxRows"></stringProp>
+          <stringProp name="resultSetHandler">Store as String</stringProp>
+        </JDBCSampler>
+        <hashTree/>
+        <JDBCSampler guiclass="TestBeanGUI" testclass="JDBCSampler" testname="q17" enabled="true">
+          <stringProp name="dataSource">conn5</stringProp>
+          <stringProp name="queryType">Select Statement</stringProp>
+          <stringProp name="query">SELECT
+  &quot;i_item_id&quot;
+, &quot;i_item_desc&quot;
+, &quot;s_state&quot;
+, &quot;count&quot;(&quot;ss_quantity&quot;) &quot;store_sales_quantitycount&quot;
+, &quot;avg&quot;(&quot;ss_quantity&quot;) &quot;store_sales_quantityave&quot;
+, &quot;stddev_samp&quot;(&quot;ss_quantity&quot;) &quot;store_sales_quantitystdev&quot;
+, (&quot;stddev_samp&quot;(&quot;ss_quantity&quot;) / &quot;avg&quot;(&quot;ss_quantity&quot;)) &quot;store_sales_quantitycov&quot;
+, &quot;count&quot;(&quot;sr_return_quantity&quot;) &quot;store_returns_quantitycount&quot;
+, &quot;avg&quot;(&quot;sr_return_quantity&quot;) &quot;store_returns_quantityave&quot;
+, &quot;stddev_samp&quot;(&quot;sr_return_quantity&quot;) &quot;store_returns_quantitystdev&quot;
+, (&quot;stddev_samp&quot;(&quot;sr_return_quantity&quot;) / &quot;avg&quot;(&quot;sr_return_quantity&quot;)) &quot;store_returns_quantitycov&quot;
+, &quot;count&quot;(&quot;cs_quantity&quot;) &quot;catalog_sales_quantitycount&quot;
+, &quot;avg&quot;(&quot;cs_quantity&quot;) &quot;catalog_sales_quantityave&quot;
+, &quot;stddev_samp&quot;(&quot;cs_quantity&quot;) &quot;catalog_sales_quantitystdev&quot;
+, (&quot;stddev_samp&quot;(&quot;cs_quantity&quot;) / &quot;avg&quot;(&quot;cs_quantity&quot;)) &quot;catalog_sales_quantitycov&quot;
+FROM
+  hive.tpcds_sf1000_orc.store_sales
+, hive.tpcds_sf1000_orc.store_returns
+, hive.tpcds_sf1000_orc.catalog_sales
+, hive.tpcds_sf1000_orc.date_dim d1
+, hive.tpcds_sf1000_orc.date_dim d2
+, hive.tpcds_sf1000_orc.date_dim d3
+, hive.tpcds_sf1000_orc.store
+, hive.tpcds_sf1000_orc.item
+WHERE (&quot;d1&quot;.&quot;d_quarter_name&quot; = &apos;2001Q1&apos;)
+   AND (&quot;d1&quot;.&quot;d_date_sk&quot; = &quot;ss_sold_date_sk&quot;)
+   AND (&quot;i_item_sk&quot; = &quot;ss_item_sk&quot;)
+   AND (&quot;s_store_sk&quot; = &quot;ss_store_sk&quot;)
+   AND (&quot;ss_customer_sk&quot; = &quot;sr_customer_sk&quot;)
+   AND (&quot;ss_item_sk&quot; = &quot;sr_item_sk&quot;)
+   AND (&quot;ss_ticket_number&quot; = &quot;sr_ticket_number&quot;)
+   AND (&quot;sr_returned_date_sk&quot; = &quot;d2&quot;.&quot;d_date_sk&quot;)
+   AND (&quot;d2&quot;.&quot;d_quarter_name&quot; IN (&apos;2001Q1&apos;, &apos;2001Q2&apos;, &apos;2001Q3&apos;))
+   AND (&quot;sr_customer_sk&quot; = &quot;cs_bill_customer_sk&quot;)
+   AND (&quot;sr_item_sk&quot; = &quot;cs_item_sk&quot;)
+   AND (&quot;cs_sold_date_sk&quot; = &quot;d3&quot;.&quot;d_date_sk&quot;)
+   AND (&quot;d3&quot;.&quot;d_quarter_name&quot; IN (&apos;2001Q1&apos;, &apos;2001Q2&apos;, &apos;2001Q3&apos;))
+GROUP BY &quot;i_item_id&quot;, &quot;i_item_desc&quot;, &quot;s_state&quot;
+ORDER BY &quot;i_item_id&quot; ASC, &quot;i_item_desc&quot; ASC, &quot;s_state&quot; ASC
+LIMIT 100
+</stringProp>
+          <stringProp name="queryArguments"></stringProp>
+          <stringProp name="queryArgumentsTypes"></stringProp>
+          <stringProp name="variableNames"></stringProp>
+          <stringProp name="resultVariable"></stringProp>
+          <stringProp name="queryTimeout"></stringProp>
+          <stringProp name="resultSetMaxRows"></stringProp>
+          <stringProp name="resultSetHandler">Store as String</stringProp>
+        </JDBCSampler>
+        <hashTree/>
+        <JDBCSampler guiclass="TestBeanGUI" testclass="JDBCSampler" testname="q18" enabled="true">
+          <stringProp name="dataSource">conn5</stringProp>
+          <stringProp name="queryType">Select Statement</stringProp>
+          <stringProp name="query">SELECT
+  &quot;i_item_id&quot;
+, &quot;ca_country&quot;
+, &quot;ca_state&quot;
+, &quot;ca_county&quot;
+, &quot;avg&quot;(CAST(&quot;cs_quantity&quot; AS DECIMAL(12,2))) &quot;agg1&quot;
+, &quot;avg&quot;(CAST(&quot;cs_list_price&quot; AS DECIMAL(12,2))) &quot;agg2&quot;
+, &quot;avg&quot;(CAST(&quot;cs_coupon_amt&quot; AS DECIMAL(12,2))) &quot;agg3&quot;
+, &quot;avg&quot;(CAST(&quot;cs_sales_price&quot; AS DECIMAL(12,2))) &quot;agg4&quot;
+, &quot;avg&quot;(CAST(&quot;cs_net_profit&quot; AS DECIMAL(12,2))) &quot;agg5&quot;
+, &quot;avg&quot;(CAST(&quot;c_birth_year&quot; AS DECIMAL(12,2))) &quot;agg6&quot;
+, &quot;avg&quot;(CAST(&quot;cd1&quot;.&quot;cd_dep_count&quot; AS DECIMAL(12,2))) &quot;agg7&quot;
+FROM
+  hive.tpcds_sf1000_orc.catalog_sales
+, hive.tpcds_sf1000_orc.customer_demographics cd1
+, hive.tpcds_sf1000_orc.customer_demographics cd2
+, hive.tpcds_sf1000_orc.customer
+, hive.tpcds_sf1000_orc.customer_address
+, hive.tpcds_sf1000_orc.date_dim
+, hive.tpcds_sf1000_orc.item
+WHERE (&quot;cs_sold_date_sk&quot; = &quot;d_date_sk&quot;)
+   AND (&quot;cs_item_sk&quot; = &quot;i_item_sk&quot;)
+   AND (&quot;cs_bill_cdemo_sk&quot; = &quot;cd1&quot;.&quot;cd_demo_sk&quot;)
+   AND (&quot;cs_bill_customer_sk&quot; = &quot;c_customer_sk&quot;)
+   AND (&quot;cd1&quot;.&quot;cd_gender&quot; = &apos;F&apos;)
+   AND (&quot;cd1&quot;.&quot;cd_education_status&quot; = &apos;Unknown&apos;)
+   AND (&quot;c_current_cdemo_sk&quot; = &quot;cd2&quot;.&quot;cd_demo_sk&quot;)
+   AND (&quot;c_current_addr_sk&quot; = &quot;ca_address_sk&quot;)
+   AND (&quot;c_birth_month&quot; IN (1, 6, 8, 9, 12, 2))
+   AND (&quot;d_year&quot; = 1998)
+   AND (&quot;ca_state&quot; IN (&apos;MS&apos;, &apos;IN&apos;, &apos;ND&apos;, &apos;OK&apos;, &apos;NM&apos;, &apos;VA&apos;, &apos;MS&apos;))
+GROUP BY ROLLUP (i_item_id, ca_country, ca_state, ca_county)
+ORDER BY &quot;ca_country&quot; ASC, &quot;ca_state&quot; ASC, &quot;ca_county&quot; ASC, &quot;i_item_id&quot; ASC
+LIMIT 100
+</stringProp>
+          <stringProp name="queryArguments"></stringProp>
+          <stringProp name="queryArgumentsTypes"></stringProp>
+          <stringProp name="variableNames"></stringProp>
+          <stringProp name="resultVariable"></stringProp>
+          <stringProp name="queryTimeout"></stringProp>
+          <stringProp name="resultSetMaxRows"></stringProp>
+          <stringProp name="resultSetHandler">Store as String</stringProp>
+        </JDBCSampler>
+        <hashTree/>
+        <JDBCSampler guiclass="TestBeanGUI" testclass="JDBCSampler" testname="q19" enabled="true">
+          <stringProp name="dataSource">conn5</stringProp>
+          <stringProp name="queryType">Select Statement</stringProp>
+          <stringProp name="query">SELECT
+  &quot;i_brand_id&quot; &quot;brand_id&quot;
+, &quot;i_brand&quot; &quot;brand&quot;
+, &quot;i_manufact_id&quot;
+, &quot;i_manufact&quot;
+, &quot;sum&quot;(&quot;ss_ext_sales_price&quot;) &quot;ext_price&quot;
+FROM
+  hive.tpcds_sf1000_orc.date_dim
+, hive.tpcds_sf1000_orc.store_sales
+, hive.tpcds_sf1000_orc.item
+, hive.tpcds_sf1000_orc.customer
+, hive.tpcds_sf1000_orc.customer_address
+, hive.tpcds_sf1000_orc.store
+WHERE (&quot;d_date_sk&quot; = &quot;ss_sold_date_sk&quot;)
+   AND (&quot;ss_item_sk&quot; = &quot;i_item_sk&quot;)
+   AND (&quot;i_manager_id&quot; = 8)
+   AND (&quot;d_moy&quot; = 11)
+   AND (&quot;d_year&quot; = 1998)
+   AND (&quot;ss_customer_sk&quot; = &quot;c_customer_sk&quot;)
+   AND (&quot;c_current_addr_sk&quot; = &quot;ca_address_sk&quot;)
+   AND (&quot;substr&quot;(&quot;ca_zip&quot;, 1, 5) &lt;&gt; &quot;substr&quot;(&quot;s_zip&quot;, 1, 5))
+   AND (&quot;ss_store_sk&quot; = &quot;s_store_sk&quot;)
+GROUP BY &quot;i_brand&quot;, &quot;i_brand_id&quot;, &quot;i_manufact_id&quot;, &quot;i_manufact&quot;
+ORDER BY &quot;ext_price&quot; DESC, &quot;i_brand&quot; ASC, &quot;i_brand_id&quot; ASC, &quot;i_manufact_id&quot; ASC, &quot;i_manufact&quot; ASC
+LIMIT 100
+</stringProp>
+          <stringProp name="queryArguments"></stringProp>
+          <stringProp name="queryArgumentsTypes"></stringProp>
+          <stringProp name="variableNames"></stringProp>
+          <stringProp name="resultVariable"></stringProp>
+          <stringProp name="queryTimeout"></stringProp>
+          <stringProp name="resultSetMaxRows"></stringProp>
+          <stringProp name="resultSetHandler">Store as String</stringProp>
+        </JDBCSampler>
+        <hashTree/>
+        <JDBCSampler guiclass="TestBeanGUI" testclass="JDBCSampler" testname="q24_1" enabled="true">
+          <stringProp name="dataSource">conn5</stringProp>
+          <stringProp name="queryType">Select Statement</stringProp>
+          <stringProp name="query">WITH
+  ssales AS (
+   SELECT
+     &quot;c_last_name&quot;
+   , &quot;c_first_name&quot;
+   , &quot;s_store_name&quot;
+   , &quot;ca_state&quot;
+   , &quot;s_state&quot;
+   , &quot;i_color&quot;
+   , &quot;i_current_price&quot;
+   , &quot;i_manager_id&quot;
+   , &quot;i_units&quot;
+   , &quot;i_size&quot;
+   , &quot;sum&quot;(&quot;ss_net_paid&quot;) &quot;netpaid&quot;
+   FROM
+     hive.tpcds_sf1000_orc.store_sales
+   , hive.tpcds_sf1000_orc.store_returns
+   , hive.tpcds_sf1000_orc.store
+   , hive.tpcds_sf1000_orc.item
+   , hive.tpcds_sf1000_orc.customer
+   , hive.tpcds_sf1000_orc.customer_address
+   WHERE (&quot;ss_ticket_number&quot; = &quot;sr_ticket_number&quot;)
+      AND (&quot;ss_item_sk&quot; = &quot;sr_item_sk&quot;)
+      AND (&quot;ss_customer_sk&quot; = &quot;c_customer_sk&quot;)
+      AND (&quot;ss_item_sk&quot; = &quot;i_item_sk&quot;)
+      AND (&quot;ss_store_sk&quot; = &quot;s_store_sk&quot;)
+      AND (&quot;c_birth_country&quot; = &quot;upper&quot;(&quot;ca_country&quot;))
+      AND (&quot;s_zip&quot; = &quot;ca_zip&quot;)
+      AND (&quot;s_market_id&quot; = 8)
+   GROUP BY &quot;c_last_name&quot;, &quot;c_first_name&quot;, &quot;s_store_name&quot;, &quot;ca_state&quot;, &quot;s_state&quot;, &quot;i_color&quot;, &quot;i_current_price&quot;, &quot;i_manager_id&quot;, &quot;i_units&quot;, &quot;i_size&quot;
+) 
+SELECT
+  &quot;c_last_name&quot;
+, &quot;c_first_name&quot;
+, &quot;s_store_name&quot;
+, &quot;sum&quot;(&quot;netpaid&quot;) &quot;paid&quot;
+FROM
+  ssales
+WHERE (&quot;i_color&quot; = &apos;pale&apos;)
+GROUP BY &quot;c_last_name&quot;, &quot;c_first_name&quot;, &quot;s_store_name&quot;
+HAVING (&quot;sum&quot;(&quot;netpaid&quot;) &gt; (
+      SELECT (DECIMAL &apos;0.05&apos; * &quot;avg&quot;(&quot;netpaid&quot;))
+      FROM
+        ssales
+   ))
+</stringProp>
+          <stringProp name="queryArguments"></stringProp>
+          <stringProp name="queryArgumentsTypes"></stringProp>
+          <stringProp name="variableNames"></stringProp>
+          <stringProp name="resultVariable"></stringProp>
+          <stringProp name="queryTimeout"></stringProp>
+          <stringProp name="resultSetMaxRows"></stringProp>
+          <stringProp name="resultSetHandler">Store as String</stringProp>
+        </JDBCSampler>
+        <hashTree/>
+        <JDBCSampler guiclass="TestBeanGUI" testclass="JDBCSampler" testname="q24_2" enabled="true">
+          <stringProp name="dataSource">conn5</stringProp>
+          <stringProp name="queryType">Select Statement</stringProp>
+          <stringProp name="query">WITH
+  ssales AS (
+   SELECT
+     &quot;c_last_name&quot;
+   , &quot;c_first_name&quot;
+   , &quot;s_store_name&quot;
+   , &quot;ca_state&quot;
+   , &quot;s_state&quot;
+   , &quot;i_color&quot;
+   , &quot;i_current_price&quot;
+   , &quot;i_manager_id&quot;
+   , &quot;i_units&quot;
+   , &quot;i_size&quot;
+   , &quot;sum&quot;(&quot;ss_net_paid&quot;) &quot;netpaid&quot;
+   FROM
+     hive.tpcds_sf1000_orc.store_sales
+   , hive.tpcds_sf1000_orc.store_returns
+   , hive.tpcds_sf1000_orc.store
+   , hive.tpcds_sf1000_orc.item
+   , hive.tpcds_sf1000_orc.customer
+   , hive.tpcds_sf1000_orc.customer_address
+   WHERE (&quot;ss_ticket_number&quot; = &quot;sr_ticket_number&quot;)
+      AND (&quot;ss_item_sk&quot; = &quot;sr_item_sk&quot;)
+      AND (&quot;ss_customer_sk&quot; = &quot;c_customer_sk&quot;)
+      AND (&quot;ss_item_sk&quot; = &quot;i_item_sk&quot;)
+      AND (&quot;ss_store_sk&quot; = &quot;s_store_sk&quot;)
+      AND (&quot;c_birth_country&quot; = &quot;upper&quot;(&quot;ca_country&quot;))
+      AND (&quot;s_zip&quot; = &quot;ca_zip&quot;)
+      AND (&quot;s_market_id&quot; = 8)
+   GROUP BY &quot;c_last_name&quot;, &quot;c_first_name&quot;, &quot;s_store_name&quot;, &quot;ca_state&quot;, &quot;s_state&quot;, &quot;i_color&quot;, &quot;i_current_price&quot;, &quot;i_manager_id&quot;, &quot;i_units&quot;, &quot;i_size&quot;
+) 
+SELECT
+  &quot;c_last_name&quot;
+, &quot;c_first_name&quot;
+, &quot;s_store_name&quot;
+, &quot;sum&quot;(&quot;netpaid&quot;) &quot;paid&quot;
+FROM
+  ssales
+WHERE (&quot;i_color&quot; = &apos;chiffon&apos;)
+GROUP BY &quot;c_last_name&quot;, &quot;c_first_name&quot;, &quot;s_store_name&quot;
+HAVING (&quot;sum&quot;(&quot;netpaid&quot;) &gt; (
+      SELECT (DECIMAL &apos;0.05&apos; * &quot;avg&quot;(&quot;netpaid&quot;))
+      FROM
+        ssales
+   ))
+</stringProp>
+          <stringProp name="queryArguments"></stringProp>
+          <stringProp name="queryArgumentsTypes"></stringProp>
+          <stringProp name="variableNames"></stringProp>
+          <stringProp name="resultVariable"></stringProp>
+          <stringProp name="queryTimeout"></stringProp>
+          <stringProp name="resultSetMaxRows"></stringProp>
+          <stringProp name="resultSetHandler">Store as String</stringProp>
+        </JDBCSampler>
+        <hashTree/>
+        <JDBCSampler guiclass="TestBeanGUI" testclass="JDBCSampler" testname="q25" enabled="true">
+          <stringProp name="dataSource">conn5</stringProp>
+          <stringProp name="queryType">Select Statement</stringProp>
+          <stringProp name="query">SELECT
+  &quot;i_item_id&quot;
+, &quot;i_item_desc&quot;
+, &quot;s_store_id&quot;
+, &quot;s_store_name&quot;
+, &quot;sum&quot;(&quot;ss_net_profit&quot;) &quot;store_sales_profit&quot;
+, &quot;sum&quot;(&quot;sr_net_loss&quot;) &quot;store_returns_loss&quot;
+, &quot;sum&quot;(&quot;cs_net_profit&quot;) &quot;catalog_sales_profit&quot;
+FROM
+  hive.tpcds_sf1000_orc.store_sales
+, hive.tpcds_sf1000_orc.store_returns
+, hive.tpcds_sf1000_orc.catalog_sales
+, hive.tpcds_sf1000_orc.date_dim d1
+, hive.tpcds_sf1000_orc.date_dim d2
+, hive.tpcds_sf1000_orc.date_dim d3
+, hive.tpcds_sf1000_orc.store
+, hive.tpcds_sf1000_orc.item
+WHERE (&quot;d1&quot;.&quot;d_moy&quot; = 4)
+   AND (&quot;d1&quot;.&quot;d_year&quot; = 2001)
+   AND (&quot;d1&quot;.&quot;d_date_sk&quot; = &quot;ss_sold_date_sk&quot;)
+   AND (&quot;i_item_sk&quot; = &quot;ss_item_sk&quot;)
+   AND (&quot;s_store_sk&quot; = &quot;ss_store_sk&quot;)
+   AND (&quot;ss_customer_sk&quot; = &quot;sr_customer_sk&quot;)
+   AND (&quot;ss_item_sk&quot; = &quot;sr_item_sk&quot;)
+   AND (&quot;ss_ticket_number&quot; = &quot;sr_ticket_number&quot;)
+   AND (&quot;sr_returned_date_sk&quot; = &quot;d2&quot;.&quot;d_date_sk&quot;)
+   AND (&quot;d2&quot;.&quot;d_moy&quot; BETWEEN 4 AND 10)
+   AND (&quot;d2&quot;.&quot;d_year&quot; = 2001)
+   AND (&quot;sr_customer_sk&quot; = &quot;cs_bill_customer_sk&quot;)
+   AND (&quot;sr_item_sk&quot; = &quot;cs_item_sk&quot;)
+   AND (&quot;cs_sold_date_sk&quot; = &quot;d3&quot;.&quot;d_date_sk&quot;)
+   AND (&quot;d3&quot;.&quot;d_moy&quot; BETWEEN 4 AND 10)
+   AND (&quot;d3&quot;.&quot;d_year&quot; = 2001)
+GROUP BY &quot;i_item_id&quot;, &quot;i_item_desc&quot;, &quot;s_store_id&quot;, &quot;s_store_name&quot;
+ORDER BY &quot;i_item_id&quot; ASC, &quot;i_item_desc&quot; ASC, &quot;s_store_id&quot; ASC, &quot;s_store_name&quot; ASC
+LIMIT 100
+</stringProp>
+          <stringProp name="queryArguments"></stringProp>
+          <stringProp name="queryArgumentsTypes"></stringProp>
+          <stringProp name="variableNames"></stringProp>
+          <stringProp name="resultVariable"></stringProp>
+          <stringProp name="queryTimeout"></stringProp>
+          <stringProp name="resultSetMaxRows"></stringProp>
+          <stringProp name="resultSetHandler">Store as String</stringProp>
+        </JDBCSampler>
+        <hashTree/>
+        <JDBCSampler guiclass="TestBeanGUI" testclass="JDBCSampler" testname="q27" enabled="true">
+          <stringProp name="dataSource">conn5</stringProp>
+          <stringProp name="queryType">Select Statement</stringProp>
+          <stringProp name="query">SELECT
+  &quot;i_item_id&quot;
+, &quot;s_state&quot;
+, GROUPING (&quot;s_state&quot;) &quot;g_state&quot;
+, &quot;avg&quot;(&quot;ss_quantity&quot;) &quot;agg1&quot;
+, &quot;avg&quot;(&quot;ss_list_price&quot;) &quot;agg2&quot;
+, &quot;avg&quot;(&quot;ss_coupon_amt&quot;) &quot;agg3&quot;
+, &quot;avg&quot;(&quot;ss_sales_price&quot;) &quot;agg4&quot;
+FROM
+  hive.tpcds_sf1000_orc.store_sales
+, hive.tpcds_sf1000_orc.customer_demographics
+, hive.tpcds_sf1000_orc.date_dim
+, hive.tpcds_sf1000_orc.store
+, hive.tpcds_sf1000_orc.item
+WHERE (&quot;ss_sold_date_sk&quot; = &quot;d_date_sk&quot;)
+   AND (&quot;ss_item_sk&quot; = &quot;i_item_sk&quot;)
+   AND (&quot;ss_store_sk&quot; = &quot;s_store_sk&quot;)
+   AND (&quot;ss_cdemo_sk&quot; = &quot;cd_demo_sk&quot;)
+   AND (&quot;cd_gender&quot; = &apos;M&apos;)
+   AND (&quot;cd_marital_status&quot; = &apos;S&apos;)
+   AND (&quot;cd_education_status&quot; = &apos;College&apos;)
+   AND (&quot;d_year&quot; = 2002)
+   AND (&quot;s_state&quot; IN (
+     &apos;TN&apos;
+   , &apos;TN&apos;
+   , &apos;TN&apos;
+   , &apos;TN&apos;
+   , &apos;TN&apos;
+   , &apos;TN&apos;))
+GROUP BY ROLLUP (i_item_id, s_state)
+ORDER BY &quot;i_item_id&quot; ASC, &quot;s_state&quot; ASC
+LIMIT 100
+</stringProp>
+          <stringProp name="queryArguments"></stringProp>
+          <stringProp name="queryArgumentsTypes"></stringProp>
+          <stringProp name="variableNames"></stringProp>
+          <stringProp name="resultVariable"></stringProp>
+          <stringProp name="queryTimeout"></stringProp>
+          <stringProp name="resultSetMaxRows"></stringProp>
+          <stringProp name="resultSetHandler">Store as String</stringProp>
+        </JDBCSampler>
+        <hashTree/>
+        <JDBCSampler guiclass="TestBeanGUI" testclass="JDBCSampler" testname="q28" enabled="true">
+          <stringProp name="dataSource">conn5</stringProp>
+          <stringProp name="queryType">Select Statement</stringProp>
+          <stringProp name="query">SELECT *
+FROM
+  (
+   SELECT
+     &quot;avg&quot;(&quot;ss_list_price&quot;) &quot;b1_lp&quot;
+   , &quot;count&quot;(&quot;ss_list_price&quot;) &quot;b1_cnt&quot;
+   , &quot;count&quot;(DISTINCT &quot;ss_list_price&quot;) &quot;b1_cntd&quot;
+   FROM
+     hive.tpcds_sf1000_orc.store_sales
+   WHERE (&quot;ss_quantity&quot; BETWEEN 0 AND 5)
+      AND ((&quot;ss_list_price&quot; BETWEEN 8 AND (8 + 10))
+         OR (&quot;ss_coupon_amt&quot; BETWEEN 459 AND (459 + 1000))
+         OR (&quot;ss_wholesale_cost&quot; BETWEEN 57 AND (57 + 20)))
+)  b1
+, (
+   SELECT
+     &quot;avg&quot;(&quot;ss_list_price&quot;) &quot;b2_lp&quot;
+   , &quot;count&quot;(&quot;ss_list_price&quot;) &quot;b2_cnt&quot;
+   , &quot;count&quot;(DISTINCT &quot;ss_list_price&quot;) &quot;b2_cntd&quot;
+   FROM
+     hive.tpcds_sf1000_orc.store_sales
+   WHERE (&quot;ss_quantity&quot; BETWEEN 6 AND 10)
+      AND ((&quot;ss_list_price&quot; BETWEEN 90 AND (90 + 10))
+         OR (&quot;ss_coupon_amt&quot; BETWEEN 2323 AND (2323 + 1000))
+         OR (&quot;ss_wholesale_cost&quot; BETWEEN 31 AND (31 + 20)))
+)  b2
+, (
+   SELECT
+     &quot;avg&quot;(&quot;ss_list_price&quot;) &quot;b3_lp&quot;
+   , &quot;count&quot;(&quot;ss_list_price&quot;) &quot;b3_cnt&quot;
+   , &quot;count&quot;(DISTINCT &quot;ss_list_price&quot;) &quot;b3_cntd&quot;
+   FROM
+     hive.tpcds_sf1000_orc.store_sales
+   WHERE (&quot;ss_quantity&quot; BETWEEN 11 AND 15)
+      AND ((&quot;ss_list_price&quot; BETWEEN 142 AND (142 + 10))
+         OR (&quot;ss_coupon_amt&quot; BETWEEN 12214 AND (12214 + 1000))
+         OR (&quot;ss_wholesale_cost&quot; BETWEEN 79 AND (79 + 20)))
+)  b3
+, (
+   SELECT
+     &quot;avg&quot;(&quot;ss_list_price&quot;) &quot;b4_lp&quot;
+   , &quot;count&quot;(&quot;ss_list_price&quot;) &quot;b4_cnt&quot;
+   , &quot;count&quot;(DISTINCT &quot;ss_list_price&quot;) &quot;b4_cntd&quot;
+   FROM
+     hive.tpcds_sf1000_orc.store_sales
+   WHERE (&quot;ss_quantity&quot; BETWEEN 16 AND 20)
+      AND ((&quot;ss_list_price&quot; BETWEEN 135 AND (135 + 10))
+         OR (&quot;ss_coupon_amt&quot; BETWEEN 6071 AND (6071 + 1000))
+         OR (&quot;ss_wholesale_cost&quot; BETWEEN 38 AND (38 + 20)))
+)  b4
+, (
+   SELECT
+     &quot;avg&quot;(&quot;ss_list_price&quot;) &quot;b5_lp&quot;
+   , &quot;count&quot;(&quot;ss_list_price&quot;) &quot;b5_cnt&quot;
+   , &quot;count&quot;(DISTINCT &quot;ss_list_price&quot;) &quot;b5_cntd&quot;
+   FROM
+     hive.tpcds_sf1000_orc.store_sales
+   WHERE (&quot;ss_quantity&quot; BETWEEN 21 AND 25)
+      AND ((&quot;ss_list_price&quot; BETWEEN 122 AND (122 + 10))
+         OR (&quot;ss_coupon_amt&quot; BETWEEN 836 AND (836 + 1000))
+         OR (&quot;ss_wholesale_cost&quot; BETWEEN 17 AND (17 + 20)))
+)  b5
+, (
+   SELECT
+     &quot;avg&quot;(&quot;ss_list_price&quot;) &quot;b6_lp&quot;
+   , &quot;count&quot;(&quot;ss_list_price&quot;) &quot;b6_cnt&quot;
+   , &quot;count&quot;(DISTINCT &quot;ss_list_price&quot;) &quot;b6_cntd&quot;
+   FROM
+     hive.tpcds_sf1000_orc.store_sales
+   WHERE (&quot;ss_quantity&quot; BETWEEN 26 AND 30)
+      AND ((&quot;ss_list_price&quot; BETWEEN 154 AND (154 + 10))
+         OR (&quot;ss_coupon_amt&quot; BETWEEN 7326 AND (7326 + 1000))
+         OR (&quot;ss_wholesale_cost&quot; BETWEEN 7 AND (7 + 20)))
+)  b6
+LIMIT 100
+</stringProp>
+          <stringProp name="queryArguments"></stringProp>
+          <stringProp name="queryArgumentsTypes"></stringProp>
+          <stringProp name="variableNames"></stringProp>
+          <stringProp name="resultVariable"></stringProp>
+          <stringProp name="queryTimeout"></stringProp>
+          <stringProp name="resultSetMaxRows"></stringProp>
+          <stringProp name="resultSetHandler">Store as String</stringProp>
+        </JDBCSampler>
+        <hashTree/>
+        <JDBCSampler guiclass="TestBeanGUI" testclass="JDBCSampler" testname="q29" enabled="true">
+          <stringProp name="dataSource">conn5</stringProp>
+          <stringProp name="queryType">Select Statement</stringProp>
+          <stringProp name="query">SELECT
+  &quot;i_item_id&quot;
+, &quot;i_item_desc&quot;
+, &quot;s_store_id&quot;
+, &quot;s_store_name&quot;
+, &quot;sum&quot;(&quot;ss_quantity&quot;) &quot;store_sales_quantity&quot;
+, &quot;sum&quot;(&quot;sr_return_quantity&quot;) &quot;store_returns_quantity&quot;
+, &quot;sum&quot;(&quot;cs_quantity&quot;) &quot;catalog_sales_quantity&quot;
+FROM
+  hive.tpcds_sf1000_orc.store_sales
+, hive.tpcds_sf1000_orc.store_returns
+, hive.tpcds_sf1000_orc.catalog_sales
+, hive.tpcds_sf1000_orc.date_dim d1
+, hive.tpcds_sf1000_orc.date_dim d2
+, hive.tpcds_sf1000_orc.date_dim d3
+, hive.tpcds_sf1000_orc.store
+, hive.tpcds_sf1000_orc.item
+WHERE (&quot;d1&quot;.&quot;d_moy&quot; = 9)
+   AND (&quot;d1&quot;.&quot;d_year&quot; = 1999)
+   AND (&quot;d1&quot;.&quot;d_date_sk&quot; = &quot;ss_sold_date_sk&quot;)
+   AND (&quot;i_item_sk&quot; = &quot;ss_item_sk&quot;)
+   AND (&quot;s_store_sk&quot; = &quot;ss_store_sk&quot;)
+   AND (&quot;ss_customer_sk&quot; = &quot;sr_customer_sk&quot;)
+   AND (&quot;ss_item_sk&quot; = &quot;sr_item_sk&quot;)
+   AND (&quot;ss_ticket_number&quot; = &quot;sr_ticket_number&quot;)
+   AND (&quot;sr_returned_date_sk&quot; = &quot;d2&quot;.&quot;d_date_sk&quot;)
+   AND (&quot;d2&quot;.&quot;d_moy&quot; BETWEEN 9 AND (9 + 3))
+   AND (&quot;d2&quot;.&quot;d_year&quot; = 1999)
+   AND (&quot;sr_customer_sk&quot; = &quot;cs_bill_customer_sk&quot;)
+   AND (&quot;sr_item_sk&quot; = &quot;cs_item_sk&quot;)
+   AND (&quot;cs_sold_date_sk&quot; = &quot;d3&quot;.&quot;d_date_sk&quot;)
+   AND (&quot;d3&quot;.&quot;d_year&quot; IN (1999, (1999 + 1), (1999 + 2)))
+GROUP BY &quot;i_item_id&quot;, &quot;i_item_desc&quot;, &quot;s_store_id&quot;, &quot;s_store_name&quot;
+ORDER BY &quot;i_item_id&quot; ASC, &quot;i_item_desc&quot; ASC, &quot;s_store_id&quot; ASC, &quot;s_store_name&quot; ASC
+LIMIT 100
+</stringProp>
+          <stringProp name="queryArguments"></stringProp>
+          <stringProp name="queryArgumentsTypes"></stringProp>
+          <stringProp name="variableNames"></stringProp>
+          <stringProp name="resultVariable"></stringProp>
+          <stringProp name="queryTimeout"></stringProp>
+          <stringProp name="resultSetMaxRows"></stringProp>
+          <stringProp name="resultSetHandler">Store as String</stringProp>
+        </JDBCSampler>
         <hashTree/>
       </hashTree>
     </hashTree>

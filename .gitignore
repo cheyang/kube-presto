@@ -1,3 +1,4 @@
 benchmark/reports
 benchmark/logs
+benchmark/tpcds
 *.log
