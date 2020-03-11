@@ -12,9 +12,10 @@ fi
 # Run jmeter CLI
 REPORT_DIR="reports/`date +%s`"
 mkdir -p $REPORT_DIR
-mkdir -p logs
 
+echo "Start JMeter test, report output to: $REPORT_DIR"
 JAVA_HOME=$JAVA_HOME $JMETER_HOME/bin/jmeter \
 	-n -t jmeter-tpcds.jmx \
-	-l logs/tpcds-log.jtl \
+	-l $REPORT_DIR/tpcds-log.jtl \
 	-e -o $REPORT_DIR
+
