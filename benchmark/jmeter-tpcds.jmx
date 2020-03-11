@@ -1,0 +1,210 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jmeterTestPlan version="1.2" properties="5.0" jmeter="5.2.1">
+  <hashTree>
+    <TestPlan guiclass="TestPlanGui" testclass="TestPlan" testname="Presto TPCDS" enabled="true">
+      <stringProp name="TestPlan.comments"></stringProp>
+      <boolProp name="TestPlan.functional_mode">false</boolProp>
+      <boolProp name="TestPlan.tearDown_on_shutdown">true</boolProp>
+      <boolProp name="TestPlan.serialize_threadgroups">false</boolProp>
+      <elementProp name="TestPlan.user_defined_variables" elementType="Arguments" guiclass="ArgumentsPanel" testclass="Arguments" testname="User Defined Variables" enabled="true">
+        <collectionProp name="Arguments.arguments"/>
+      </elementProp>
+      <stringProp name="TestPlan.user_define_classpath"></stringProp>
+    </TestPlan>
+    <hashTree>
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="group5-sf1000" enabled="true">
+        <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
+        <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController" testname="Loop Controller" enabled="true">
+          <boolProp name="LoopController.continue_forever">false</boolProp>
+          <stringProp name="LoopController.loops">1</stringProp>
+        </elementProp>
+        <stringProp name="ThreadGroup.num_threads">1</stringProp>
+        <stringProp name="ThreadGroup.ramp_time">1</stringProp>
+        <boolProp name="ThreadGroup.scheduler">false</boolProp>
+        <stringProp name="ThreadGroup.duration"></stringProp>
+        <stringProp name="ThreadGroup.delay"></stringProp>
+        <boolProp name="ThreadGroup.same_user_on_next_iteration">true</boolProp>
+      </ThreadGroup>
+      <hashTree>
+        <JDBCDataSource guiclass="TestBeanGUI" testclass="JDBCDataSource" testname="Presto Configuration" enabled="true">
+          <boolProp name="autocommit">true</boolProp>
+          <stringProp name="checkQuery"></stringProp>
+          <stringProp name="connectionAge">5000</stringProp>
+          <stringProp name="connectionProperties"></stringProp>
+          <stringProp name="dataSource">conn5</stringProp>
+          <stringProp name="dbUrl">jdbc:presto://10.244.1.140:8080/hive/tpcds_sf1000_orc</stringProp>
+          <stringProp name="driver">io.prestosql.jdbc.PrestoDriver</stringProp>
+          <stringProp name="initQuery"></stringProp>
+          <boolProp name="keepAlive">true</boolProp>
+          <stringProp name="password"></stringProp>
+          <stringProp name="poolMax">1</stringProp>
+          <boolProp name="preinit">false</boolProp>
+          <stringProp name="timeout">10000</stringProp>
+          <stringProp name="transactionIsolation">DEFAULT</stringProp>
+          <stringProp name="trimInterval">60000</stringProp>
+          <stringProp name="username"></stringProp>
+        </JDBCDataSource>
+        <hashTree/>
+        <JDBCSampler guiclass="TestBeanGUI" testclass="JDBCSampler" testname="q02" enabled="true">
+          <stringProp name="dataSource">conn5</stringProp>
+          <stringProp name="query">WITH
+  wscs AS (
+   SELECT
+     &quot;sold_date_sk&quot;
+   , &quot;sales_price&quot;
+   FROM
+     (
+      SELECT
+        &quot;ws_sold_date_sk&quot; &quot;sold_date_sk&quot;
+      , &quot;ws_ext_sales_price&quot; &quot;sales_price&quot;
+      FROM
+        hive.tpcds_sf1000_orc.web_sales
+   )  
+UNION ALL (
+      SELECT
+        &quot;cs_sold_date_sk&quot; &quot;sold_date_sk&quot;
+      , &quot;cs_ext_sales_price&quot; &quot;sales_price&quot;
+      FROM
+        hive.tpcds_sf1000_orc.catalog_sales
+   ) ) 
+, wswscs AS (
+   SELECT
+     &quot;d_week_seq&quot;
+   , &quot;sum&quot;((CASE WHEN (&quot;d_day_name&quot; = &apos;Sunday&apos;) THEN &quot;sales_price&quot; ELSE null END)) &quot;sun_sales&quot;
+   , &quot;sum&quot;((CASE WHEN (&quot;d_day_name&quot; = &apos;Monday&apos;) THEN &quot;sales_price&quot; ELSE null END)) &quot;mon_sales&quot;
+   , &quot;sum&quot;((CASE WHEN (&quot;d_day_name&quot; = &apos;Tuesday&apos;) THEN &quot;sales_price&quot; ELSE null END)) &quot;tue_sales&quot;
+   , &quot;sum&quot;((CASE WHEN (&quot;d_day_name&quot; = &apos;Wednesday&apos;) THEN &quot;sales_price&quot; ELSE null END)) &quot;wed_sales&quot;
+   , &quot;sum&quot;((CASE WHEN (&quot;d_day_name&quot; = &apos;Thursday&apos;) THEN &quot;sales_price&quot; ELSE null END)) &quot;thu_sales&quot;
+   , &quot;sum&quot;((CASE WHEN (&quot;d_day_name&quot; = &apos;Friday&apos;) THEN &quot;sales_price&quot; ELSE null END)) &quot;fri_sales&quot;
+   , &quot;sum&quot;((CASE WHEN (&quot;d_day_name&quot; = &apos;Saturday&apos;) THEN &quot;sales_price&quot; ELSE null END)) &quot;sat_sales&quot;
+   FROM
+     wscs
+   , hive.tpcds_sf1000_orc.date_dim
+   WHERE (&quot;d_date_sk&quot; = &quot;sold_date_sk&quot;)
+   GROUP BY &quot;d_week_seq&quot;
+) 
+SELECT
+  &quot;d_week_seq1&quot;
+, &quot;round&quot;((&quot;sun_sales1&quot; / &quot;sun_sales2&quot;), 2)
+, &quot;round&quot;((&quot;mon_sales1&quot; / &quot;mon_sales2&quot;), 2)
+, &quot;round&quot;((&quot;tue_sales1&quot; / &quot;tue_sales2&quot;), 2)
+, &quot;round&quot;((&quot;wed_sales1&quot; / &quot;wed_sales2&quot;), 2)
+, &quot;round&quot;((&quot;thu_sales1&quot; / &quot;thu_sales2&quot;), 2)
+, &quot;round&quot;((&quot;fri_sales1&quot; / &quot;fri_sales2&quot;), 2)
+, &quot;round&quot;((&quot;sat_sales1&quot; / &quot;sat_sales2&quot;), 2)
+FROM
+  (
+   SELECT
+     &quot;wswscs&quot;.&quot;d_week_seq&quot; &quot;d_week_seq1&quot;
+   , &quot;sun_sales&quot; &quot;sun_sales1&quot;
+   , &quot;mon_sales&quot; &quot;mon_sales1&quot;
+   , &quot;tue_sales&quot; &quot;tue_sales1&quot;
+   , &quot;wed_sales&quot; &quot;wed_sales1&quot;
+   , &quot;thu_sales&quot; &quot;thu_sales1&quot;
+   , &quot;fri_sales&quot; &quot;fri_sales1&quot;
+   , &quot;sat_sales&quot; &quot;sat_sales1&quot;
+   FROM
+     wswscs
+   , hive.tpcds_sf1000_orc.date_dim
+   WHERE (&quot;date_dim&quot;.&quot;d_week_seq&quot; = &quot;wswscs&quot;.&quot;d_week_seq&quot;)
+      AND (&quot;d_year&quot; = 2001)
+)  y
+, (
+   SELECT
+     &quot;wswscs&quot;.&quot;d_week_seq&quot; &quot;d_week_seq2&quot;
+   , &quot;sun_sales&quot; &quot;sun_sales2&quot;
+   , &quot;mon_sales&quot; &quot;mon_sales2&quot;
+   , &quot;tue_sales&quot; &quot;tue_sales2&quot;
+   , &quot;wed_sales&quot; &quot;wed_sales2&quot;
+   , &quot;thu_sales&quot; &quot;thu_sales2&quot;
+   , &quot;fri_sales&quot; &quot;fri_sales2&quot;
+   , &quot;sat_sales&quot; &quot;sat_sales2&quot;
+   FROM
+     wswscs
+   , hive.tpcds_sf1000_orc.date_dim
+   WHERE (&quot;date_dim&quot;.&quot;d_week_seq&quot; = &quot;wswscs&quot;.&quot;d_week_seq&quot;)
+      AND (&quot;d_year&quot; = (2001 + 1))
+)  z
+WHERE (&quot;d_week_seq1&quot; = (&quot;d_week_seq2&quot; - 53))
+ORDER BY &quot;d_week_seq1&quot; ASC
+</stringProp>
+          <stringProp name="queryArguments"></stringProp>
+          <stringProp name="queryArgumentsTypes"></stringProp>
+          <stringProp name="queryTimeout"></stringProp>
+          <stringProp name="queryType">Select Statement</stringProp>
+          <stringProp name="resultSetHandler">Store as String</stringProp>
+          <stringProp name="resultSetMaxRows"></stringProp>
+          <stringProp name="resultVariable"></stringProp>
+          <stringProp name="variableNames"></stringProp>
+        </JDBCSampler>
+        <hashTree/>
+        <JDBCSampler guiclass="TestBeanGUI" testclass="JDBCSampler" testname="q03" enabled="true">
+          <stringProp name="dataSource">conn5</stringProp>
+          <stringProp name="queryType">Select Statement</stringProp>
+          <stringProp name="query">SELECT
+  &quot;dt&quot;.&quot;d_year&quot;
+, &quot;item&quot;.&quot;i_brand_id&quot; &quot;brand_id&quot;
+, &quot;item&quot;.&quot;i_brand&quot; &quot;brand&quot;
+, &quot;sum&quot;(&quot;ss_ext_sales_price&quot;) &quot;sum_agg&quot;
+FROM
+  hive.tpcds_sf1000_orc.date_dim dt
+, hive.tpcds_sf1000_orc.store_sales
+, hive.tpcds_sf1000_orc.item
+WHERE (&quot;dt&quot;.&quot;d_date_sk&quot; = &quot;store_sales&quot;.&quot;ss_sold_date_sk&quot;)
+   AND (&quot;store_sales&quot;.&quot;ss_item_sk&quot; = &quot;item&quot;.&quot;i_item_sk&quot;)
+   AND (&quot;item&quot;.&quot;i_manufact_id&quot; = 128)
+   AND (&quot;dt&quot;.&quot;d_moy&quot; = 11)
+GROUP BY &quot;dt&quot;.&quot;d_year&quot;, &quot;item&quot;.&quot;i_brand&quot;, &quot;item&quot;.&quot;i_brand_id&quot;
+ORDER BY &quot;dt&quot;.&quot;d_year&quot; ASC, &quot;sum_agg&quot; DESC, &quot;brand_id&quot; ASC
+LIMIT 100
+</stringProp>
+          <stringProp name="queryArguments"></stringProp>
+          <stringProp name="queryArgumentsTypes"></stringProp>
+          <stringProp name="variableNames"></stringProp>
+          <stringProp name="resultVariable"></stringProp>
+          <stringProp name="queryTimeout"></stringProp>
+          <stringProp name="resultSetMaxRows"></stringProp>
+          <stringProp name="resultSetHandler">Store as String</stringProp>
+        </JDBCSampler>
+        <hashTree/>
+        <ResultCollector guiclass="SummaryReport" testclass="ResultCollector" testname="Summary Report" enabled="true">
+          <boolProp name="ResultCollector.error_logging">false</boolProp>
+          <objProp>
+            <name>saveConfig</name>
+            <value class="SampleSaveConfiguration">
+              <time>true</time>
+              <latency>true</latency>
+              <timestamp>true</timestamp>
+              <success>true</success>
+              <label>true</label>
+              <code>true</code>
+              <message>true</message>
+              <threadName>true</threadName>
+              <dataType>true</dataType>
+              <encoding>false</encoding>
+              <assertions>true</assertions>
+              <subresults>true</subresults>
+              <responseData>false</responseData>
+              <samplerData>false</samplerData>
+              <xml>false</xml>
+              <fieldNames>true</fieldNames>
+              <responseHeaders>false</responseHeaders>
+              <requestHeaders>false</requestHeaders>
+              <responseDataOnError>false</responseDataOnError>
+              <saveAssertionResultsFailureMessage>true</saveAssertionResultsFailureMessage>
+              <assertionsResultsToSave>0</assertionsResultsToSave>
+              <bytes>true</bytes>
+              <sentBytes>true</sentBytes>
+              <url>true</url>
+              <threadCounts>true</threadCounts>
+              <idleTime>true</idleTime>
+              <connectTime>true</connectTime>
+            </value>
+          </objProp>
+          <stringProp name="filename"></stringProp>
+        </ResultCollector>
+        <hashTree/>
+      </hashTree>
+    </hashTree>
+  </hashTree>
+</jmeterTestPlan>
