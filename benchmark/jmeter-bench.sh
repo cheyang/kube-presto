@@ -10,11 +10,11 @@ if [ ! -f $JMETER_HOME/lib/presto-jdbc-$PRESTO_VER.jar ]; then
 fi
 
 # Run jmeter CLI
-REPORT_DIR="report/`date +%s`"
+REPORT_DIR="reports/`date +%s`"
 mkdir -p $REPORT_DIR
 mkdir -p logs
 
 JAVA_HOME=$JAVA_HOME $JMETER_HOME/bin/jmeter \
 	-n -t jmeter-tpcds.jmx \
 	-l logs/tpcds-log.jtl \
-	-e -o reports $REPORT_DIR
+	-e -o $REPORT_DIR
