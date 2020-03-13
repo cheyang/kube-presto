@@ -56,12 +56,13 @@ spec:
         - name: presto-catalog-vol
           subPath: tpcds.properties
           mountPath: /opt/presto-server/etc/catalog/tpcds.properties
+        - name: presto-catalog-vol
           subPath: hive.properties
           mountPath: /tmp/hive.properties
         resources:
           requests:
-            memory: "32G"
-            cpu: 8
+            memory: "8G"
+            cpu: 2
           limits:
             memory: "32G"
             cpu: 8
@@ -84,7 +85,7 @@ metadata:
   name: presto-worker
   namespace: warehouse
 spec:
-  replicas: 3
+  replicas: 5
   selector:
     matchLabels:
       app: presto-worker
@@ -119,12 +120,13 @@ spec:
         - name: presto-catalog-vol
           subPath: tpcds.properties
           mountPath: /opt/presto-server/etc/catalog/tpcds.properties
+        - name: presto-catalog-vol
           subPath: hive.properties
           mountPath: /tmp/hive.properties
         resources:
           requests:
-            memory: "32G"
-            cpu: 8
+            memory: "8G"
+            cpu: 2
           limits:
             memory: "32G"
             cpu: 8

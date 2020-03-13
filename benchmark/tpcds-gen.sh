@@ -8,7 +8,7 @@ sql_exec() {
 }
 
 echo "`date`: Drop existing schema: $SCHEMA"
-declare TABLES="$(sql_exec "SHOW TABLES FROM tpcds.sf1000;" | sed s/\"//g)"
+declare TABLES="$(sql_exec "SHOW TABLES FROM tpcds.sf1000;" | sed s/\"//g | tr -d '\r')"
 # clean up from any previous runs.
 for tab in $TABLES; do
     echo $tab
