@@ -2,3 +2,4 @@ benchmark/reports
 benchmark/logs
 benchmark/tpcds
 *.log
+.DS_Store

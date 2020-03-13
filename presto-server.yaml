@@ -56,8 +56,13 @@ spec:
         - name: presto-catalog-vol
           subPath: tpcds.properties
           mountPath: /opt/presto-server/etc/catalog/tpcds.properties
+          subPath: hive.properties
+          mountPath: /tmp/hive.properties
         resources:
           requests:
+            memory: "32G"
+            cpu: 8
+          limits:
             memory: "32G"
             cpu: 8
         imagePullPolicy: Always
@@ -114,8 +119,13 @@ spec:
         - name: presto-catalog-vol
           subPath: tpcds.properties
           mountPath: /opt/presto-server/etc/catalog/tpcds.properties
+          subPath: hive.properties
+          mountPath: /tmp/hive.properties
         resources:
           requests:
+            memory: "32G"
+            cpu: 8
+          limits:
             memory: "32G"
             cpu: 8
         imagePullPolicy: Always
