@@ -3,10 +3,7 @@
 # Generate TPCDS table DDL, point to external location.
 #
 
-SCALE=1000
-FORMAT=orc
-SCHEMA=tpcds_sf${SCALE}_${FORMAT}
-LOCATION=s3://deephub/mydir/$SCHEMA.db
+source ./tpcds-env.sh
 
 sql_exec() {
     kubectl exec -it pod/presto-cli /opt/presto-cli -- --server presto.warehouse:8080 --catalog hive --execute "$1"
@@ -28,4 +25,4 @@ done
 
 # Create schema 
 echo "Generate schema DDL"
-echo "CREATE SCHEMA $SCHEMA WITH (location = '$LOCATION');" > tpcds-ddl/create-schemal.sql
+echo "CREATE SCHEMA $SCHEMA WITH (location = '$LOCATION');" > tpcds-ddl/create-schema.sql
