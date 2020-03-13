@@ -20,7 +20,7 @@ sql_exec "DROP SCHEMA IF EXISTS $SCHEMA;"
 
 # Create schema and tables
 echo "Create schema and tables"
-cat tpcds-ddl/create-schema.sql | sql_exec
+sql_exec "`cat tpcds-ddl/create-schema.sql`"
 
 for SQL in tpcds-ddl/*.sql
 do
@@ -30,5 +30,5 @@ do
 	fi
 	tab=`echo $FILENAME | cut -d "." -f 1`
 	echo "Create table $tab"
-	cat $SQL | sql_exec
+	sql_exec "`cat $SQL`"
 done
