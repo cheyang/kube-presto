@@ -1,7 +1,10 @@
 #!/bin/bash
-SCALE=1000
-FORMAT=orc
-SCHEMA=tpcds_sf${SCALE}_${FORMAT}
+#
+# Generate TPC-DS data.
+# This also creates schema and tables.
+#
+
+source ./tpcds-env.sh
 
 sql_exec() {
     kubectl exec -it pod/presto-cli /opt/presto-cli -- --server presto.warehouse:8080 --catalog hive --execute "$1"
