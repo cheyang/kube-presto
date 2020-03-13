@@ -32,7 +32,7 @@
           <stringProp name="connectionAge">5000</stringProp>
           <stringProp name="connectionProperties"></stringProp>
           <stringProp name="dataSource">conn5</stringProp>
-          <stringProp name="dbUrl">jdbc:presto://10.244.1.146:8080/hive/tpcds_sf1000_orc</stringProp>
+          <stringProp name="dbUrl">jdbc:presto://10.244.0.184:8080/hive/tpcds_sf1000_orc</stringProp>
           <stringProp name="driver">io.prestosql.jdbc.PrestoDriver</stringProp>
           <stringProp name="initQuery"></stringProp>
           <boolProp name="keepAlive">true</boolProp>
