@@ -17,14 +17,13 @@ rm -rf tpcds-ddl
 mkdir tpcds-ddl
 
 # Retrieve table schema
-echo "Retrieve existing schema"
-declare TABLES="$(sql_exec "SHOW TABLES FROM tpcds.sf1000;" | sed s/\"//g)"
+declare TABLES="$(sql_exec "SHOW TABLES FROM tpcds.sf1000;" | sed s/\"//g | tr -d '\r')"
 
 echo "Generate table DDL"
-for TAB in $TABLES; do
-    echo $TAB
-    sql_exec "SHOW CREATE TABLE tpcds.sf1000.$TAB;" > tpcds-ddl/$TAB.sql
-    echo "WITH (format = 'ORC', external_location = '$LOCATION/$TAB')" >> tpcds-ddl/$TAB.sql
+for TABLE in $TABLES; do
+    echo $TABLE
+    sql_exec "SHOW CREATE TABLE tpcds.sf1000.$TABLE;" | sed s/\"//g | sed s/tpcds/hive/g | sed s/sf1000/$SCHEMA/g > tpcds-ddl/$TABLE.sql
+    echo "WITH (format = 'ORC', external_location = '$LOCATION/$TABLE')" >> tpcds-ddl/$TABLE.sql
 done
 
 # Create schema 
