@@ -25,7 +25,7 @@ cat tpcds-ddl/create-schema.sql | sql_exec
 for SQL in tpcds-ddl/*.sql
 do
 	FILENAME=`basename $SQL`
-	if [ "$FILENAME" -eq "create-schema.sql" ]; then
+	if [ "$FILENAME" == "create-schema.sql" ]; then
 		continue
 	fi
 	tab=`echo $FILENAME | cut -d "." -f 1`

@@ -25,4 +25,4 @@ done
 
 # Create schema 
 echo "Generate schema DDL"
-echo "CREATE SCHEMA $SCHEMA WITH (location = '$LOCATION');" > tpcds-ddl/create-schemal.sql
+echo "CREATE SCHEMA $SCHEMA WITH (location = '$LOCATION');" > tpcds-ddl/create-schema.sql
