@@ -39,12 +39,12 @@ spec:
         - name: AWS_ACCESS_KEY_ID
           valueFrom:
             secretKeyRef:
-              name: metastore-s3-keys
+              name: hyperstore-s3-keys
               key: access-key
         - name: AWS_SECRET_ACCESS_KEY
           valueFrom:
             secretKeyRef:
-              name: metastore-s3-keys
+              name: hyperstore-s3-keys
               key: secret-key
         volumeMounts:
         - name: presto-etc-vol
@@ -103,12 +103,12 @@ spec:
         - name: AWS_ACCESS_KEY_ID
           valueFrom:
             secretKeyRef:
-              name: metastore-s3-keys
+              name: hyperstore-s3-keys
               key: access-key
         - name: AWS_SECRET_ACCESS_KEY
           valueFrom:
             secretKeyRef:
-              name: metastore-s3-keys
+              name: hyperstore-s3-keys
               key: secret-key
         volumeMounts:
         - name: presto-etc-vol
