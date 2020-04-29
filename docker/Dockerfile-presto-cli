@@ -1,0 +1,13 @@
+FROM openjdk:11-slim
+
+# Variables that define which software versions to install.
+ARG PRESTO_VERSION=330
+ENV JAVA_HOME=/usr/local/openjdk-11
+
+# Install dependencies
+RUN apt-get update && apt-get install -y curl less --no-install-recommends
+
+# Download and extract Presto server binary package.
+RUN curl -o /opt/presto-cli https://repo1.maven.org/maven2/io/prestosql/presto-cli/$PRESTO_VERSION/presto-cli-$PRESTO_VERSION-executable.jar \
+	&& chmod +x /opt/presto-cli \
+	&& ln -s /opt/presto-cli /usr/local/bin/

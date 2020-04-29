@@ -1,0 +1,26 @@
+FROM openjdk:11-slim
+
+# Variables that define which software versions to install.
+ARG PRESTO_VERSION=330
+ENV JAVA_HOME=/usr/local/openjdk-11
+
+# Install dependencies
+RUN apt-get update && apt-get install -y curl python --no-install-recommends
+
+# Download and extract Presto server binary package.
+RUN curl https://repo1.maven.org/maven2/io/prestosql/presto-server/$PRESTO_VERSION/presto-server-$PRESTO_VERSION.tar.gz \
+	| tar xvz -C /opt/  \
+	&& ln -s /opt/presto-server-$PRESTO_VERSION /opt/presto-server \
+	&& mkdir -p /opt/presto-server/etc \
+	&& mkdir -p /opt/presto-server/etc/catalog \
+	&& mkdir -p /var/presto/data
+
+ENV PRESTO_HOME="/opt/presto-server"
+
+# Minimum config
+COPY node.properties $PRESTO_HOME/etc
+COPY hive.properties $PRESTO_HOME/etc/catalog
+
+# Entry point
+COPY entrypoint.sh /opt
+ENTRYPOINT ["/opt/entrypoint.sh"]
